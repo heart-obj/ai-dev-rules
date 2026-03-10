@@ -233,5 +233,3 @@ func NewHandler(cfg *config.Config) *Handler {
 - [ ] Repository 仅做数据访问，使用 `*models.Xxx`，事务在 Service 层控制。
 - [ ] 配置与敏感信息通过 config/env 注入；探针与指标按服务类型正确挂载。
 - [ ] 鉴权与 RBAC 使用现有 middleware，路径与命名与现有项目一致。
-
-以上规则基于当前仓库实践整理，随项目演进可再增删修订。详细运行与 API 说明见 [02-开发文档.md](./02-开发文档.md) 与 [01-整体架构说明.md](./01-整体架构说明.md)。
