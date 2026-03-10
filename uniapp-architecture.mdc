@@ -1,0 +1,51 @@
+---
+description: Uniapp 前端项目架构与目录规范
+globs: src/**/*
+alwaysApply: true
+---
+
+# Uniapp 前端项目架构规则
+
+## 技术栈
+
+- **框架**: Vue 3 + Uniapp 3（Vite 5）
+- **状态**: Pinia（单 store 同步到 uni.setStorageSync）
+- **样式**: Sass，入口 `@/common/com-list.scss`、`@/static/public.scss`
+- **请求**: 统一封装在 `@/common/http.ts`，API 层使用 `get/post/del` + 可选加密
+
+## 目录结构约定
+
+| 目录 | 用途 |
+|------|------|
+| `src/pages/` | 主包页面（login、message、mine、home） |
+| `src/pagesXxx/` | 分包根目录，与 `pages.json` 的 subPackages.root 一致（如 pagesPublick、pagesDangerCheck、pagesRisk、pageMine 等） |
+| `src/pagesXxx/components/` | 分包内私有组件，以 `com-` 为前缀（com-form、com-nav-bar、com-cell-item 等） |
+| `src/components/` | 全局公共组件（如 com-page-container、com-form、com-search-input） |
+| `src/api/` | 按业务域拆分的接口文件（user.ts、public.ts、dangerCheck.ts、risk.ts 等），内部从 `@/common/http` 引入 get/post/del |
+| `src/store/` | Pinia store，当前以 `user.ts` 为主，与 main.ts 中 pinia 持久化逻辑配合 |
+| `src/common/` | 公共逻辑：http.ts、crypto.ts、menuConfig.ts、util.ts、pinia-storage.ts 等 |
+| `src/types/` | 全局 TypeScript 类型（如 typesData.ts） |
+| `src/hooks/` | 组合式 hooks（useIm、useGaodeMap、usePageLeaveConfirm） |
+| `src/static/` | 静态资源与 tabBar 等图片 |
+
+## 页面与路由
+
+- 主包路由在 `pages.json` 的 `pages` 中配置；分包在 `subPackages[].root` + `subPackages[].pages`。
+- 分包 root 命名：`pages` + 业务缩写（如 pagesPublick、pagesCheckTask），与目录名一致。
+
+## 组件与 API 规范
+
+- **组件命名**: 分包内组件统一 `com-` 前缀，与现有 com-form、com-nav-bar、com-block-info 等保持一致。
+- **API 写法**: 在 `src/api/*.ts` 中导出 async 函数，使用 `@/common/http` 的 get/post/del；敏感接口通过 http 内 cryptoArr 与请求头配合加密。
+- **类型**: 接口入参/出参、Store state 使用 `src/types/typesData.ts` 或同目录类型定义，避免 any 泛滥。
+
+## 新增功能时的放置规则
+
+- 新主包页面 → `src/pages/模块名/页面名.vue`，并在 `pages.json` 的 `pages` 中注册。
+- 新分包 → 新建 `src/pagesXxx/`，在 `pages.json` 的 `subPackages` 中增加 root 与 pages。
+- 新接口 → 在对应 `src/api/业务域.ts` 中新增方法；新业务域则新建 `src/api/新业务.ts`。
+- 仅某分包使用的组件 → 放在该分包的 `components/` 下并保持 `com-` 前缀；多分包复用则放到 `src/components/`。
+
+## 条件编译
+
+- 使用 `// #ifdef APP-PLUS|H5`、`// #ifdef MP-WEIXIN` 等做平台区分；与 `pages.json` 中按平台配置的页面保持一致。

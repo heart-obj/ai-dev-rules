@@ -1,0 +1,44 @@
+---
+description: 前端项目架构与目录规范（Vue3 + Vite + TypeScript）
+alwaysApply: true
+---
+
+# 前端项目架构规则
+
+## 技术栈
+
+- **框架**: Vue 3 + TypeScript + Vite
+- **UI**: Element Plus（组件自动导入，见 `vite.config.ts`）
+- **状态**: Pinia（stores，非 store）
+- **路由**: Vue Router（createWebHistory）
+- **请求**: 统一使用 `@/utils/request` 封装的 axios 实例
+
+## 目录与职责
+
+| 目录 | 用途 |
+|------|------|
+| `src/api` | 按业务模块拆分，每模块 `index.ts`（接口）+ `types.ts`（请求/响应类型） |
+| `src/views` | 页面视图，按业务分目录，每模块 `index.vue` + `components/`、`dialogInfo/` 等子目录 |
+| `src/components` | 全局可复用组件，统一放在此目录；公共组件使用 **com-** 前缀（如 com-layout、com-map） |
+| `src/stores/modules` | Pinia 模块（user、permission、request、dict 等），使用 `defineStore` + 组合式写法 |
+| `src/router` | 路由定义；布局页用 `layout` + `children`，页面用 `import('@/views/xxx/index.vue')` 懒加载 |
+| `src/utils` | 工具与请求封装（request、auth、public 等） |
+| `src/directives` | 自定义指令，在 `directives/index.ts` 统一导出并在 main.ts 注册 |
+| `src/hooks` | 组合式逻辑复用 |
+| `src/assets` | 静态资源；样式入口 `public.scss`、`reset.scss`，图标 svg 放 `assets/icons/svg` |
+| `src/types` | 全局类型与 auto-imports 类型 |
+
+## 约定
+
+1. **路径别名**: 使用 `@` 指向 `src`，例如 `@/api/login`、`@/stores/modules/user`。
+2. **Vue 组件**: 优先使用 `<script setup lang="ts">`，样式使用 `scoped` + `lang="scss"`。
+3. **API 模块**: 接口函数从 `@/utils/request` 发起请求；模块内类型放在同目录 `types.ts`，通用类型放在 `api/types.ts`。
+4. **页面结构**: 业务页放在 `views/模块名/index.vue`，该模块下的弹窗、子组件放在同目录的 `components/`中，弹窗子组件放在同目录的 `dialogInfo/`中。
+5. **路由**: 登录、布局、业务页在 `router/index.ts` 的 `constantRoutes` 中配置；权限与动态路由在 `permission.ts` 与 store 中处理。
+6. **环境与构建**: 环境变量使用 `VITE_` 前缀，构建模式 `test` / `production`；别名与 PostCSS（如 px-to-viewport）在 `vite.config.ts` 中配置。
+
+## 示例
+
+- 新增业务 API：在 `src/api/新模块/` 下新增 `index.ts`、`types.ts`，并统一使用 `request()`。
+- 新增页面：在 `src/views/新模块/index.vue` 写主页面，子组件放在同目录 `components/`；在 `router/index.ts` 的 layout.children 中增加对应路由。
+- 新增全局组件：放在 `src/components`，命名使用 com- 前缀，可由 unplugin-vue-components 自动按需引入。
