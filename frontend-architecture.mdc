@@ -1,44 +1,195 @@
----
-description: 前端项目架构与目录规范（Vue3 + Vite + TypeScript）
-alwaysApply: true
----
-
-# 前端项目架构规则
+# 前端项目架构与UI开发规范（Vue3 + Vite + TypeScript）
 
 ## 技术栈
 
 - **框架**: Vue 3 + TypeScript + Vite
-- **UI**: Element Plus（组件自动导入，见 `vite.config.ts`）
+
+- **UI**: Element Plus（组件自动导入，见 `vite.config.ts`），需严格遵循设计稿完成组件样式/交互的1:1还原
+
 - **状态**: Pinia（stores，非 store）
-- **路由**: Vue Router（createWebHistory）
+
+- **路由**: Vue Router（createWebHistory），路由跳转交互需与原型设计完全一致
+
 - **请求**: 统一使用 `@/utils/request` 封装的 axios 实例
 
 ## 目录与职责
 
-| 目录 | 用途 |
-|------|------|
-| `src/api` | 按业务模块拆分，每模块 `index.ts`（接口）+ `types.ts`（请求/响应类型） |
-| `src/views` | 页面视图，按业务分目录，每模块 `index.vue` + `components/`、`dialogInfo/` 等子目录 |
-| `src/components` | 全局可复用组件，统一放在此目录；公共组件使用 **com-** 前缀（如 com-layout、com-map） |
-| `src/stores/modules` | Pinia 模块（user、permission、request、dict 等），使用 `defineStore` + 组合式写法 |
-| `src/router` | 路由定义；布局页用 `layout` + `children`，页面用 `import('@/views/xxx/index.vue')` 懒加载 |
-| `src/utils` | 工具与请求封装（request、auth、public 等） |
-| `src/directives` | 自定义指令，在 `directives/index.ts` 统一导出并在 main.ts 注册 |
-| `src/hooks` | 组合式逻辑复用 |
-| `src/assets` | 静态资源；样式入口 `public.scss`、`reset.scss`，图标 svg 放 `assets/icons/svg` |
-| `src/types` | 全局类型与 auto-imports 类型 |
+|目录|用途|
+|---|---|
+|`src/api`|按业务模块拆分，每模块 `index.ts`（接口）+ `types.ts`（请求/响应类型）|
+|`src/views`|页面视图，按业务分目录，每模块 `index.vue` + `components/`、`dialogInfo/` 等子目录；页面内样式需1:1还原设计稿，响应式布局需适配多端设计|
+|`src/components`|全局可复用组件，统一放在此目录；公共组件使用 **com-** 前缀（如 com-layout、com-map）；组件样式/交互需严格遵循设计规范，禁止私自修改|
+|`src/stores/modules`|Pinia 模块（user、permission、request、dict 等），使用 `defineStore` + 组合式写法|
+|`src/router`|路由定义；布局页用 `layout` + `children`，页面用 `import('@/views/xxx/index.vue')` 懒加载；路由跳转交互需与原型设计一致|
+|`src/utils`|工具与请求封装（request、auth、public 等）|
+|`src/directives`|自定义指令，在 `directives/index.ts` 统一导出并在 main.ts 注册|
+|`src/hooks`|组合式逻辑复用，可包含响应式布局、交互动效相关的复用逻辑|
+|`src/assets`|静态资源；样式入口 `public.scss`、`reset.scss`（需对齐设计稿的基础样式规范），图标 svg 放 `assets/icons/svg`（图标使用需严格匹配设计稿）|
+|`src/types`|全局类型与 auto-imports 类型|
+|`docs/ui-design`（新增）|存放各模块UI设计稿概要JSON文件，命名规范：`[模块名]-design-overview.json`|
+## 核心约定
 
-## 约定
+### 1. 项目架构约定
 
 1. **路径别名**: 使用 `@` 指向 `src`，例如 `@/api/login`、`@/stores/modules/user`。
-2. **Vue 组件**: 优先使用 `<script setup lang="ts">`，样式使用 `scoped` + `lang="scss"`。
+
+2. **Vue 组件**: 优先使用 `<script setup lang="ts">`，样式使用 `scoped` + `lang="scss"`（样式编写需像素级还原设计稿）。
+
 3. **API 模块**: 接口函数从 `@/utils/request` 发起请求；模块内类型放在同目录 `types.ts`，通用类型放在 `api/types.ts`。
+
 4. **页面结构**: 业务页放在 `views/模块名/index.vue`，该模块下的弹窗、子组件放在同目录的 `components/`中，弹窗子组件放在同目录的 `dialogInfo/`中。
+
 5. **路由**: 登录、布局、业务页在 `router/index.ts` 的 `constantRoutes` 中配置；权限与动态路由在 `permission.ts` 与 store 中处理。
-6. **环境与构建**: 环境变量使用 `VITE_` 前缀，构建模式 `test` / `production`；别名与 PostCSS（如 px-to-viewport）在 `vite.config.ts` 中配置。
+
+6. **环境与构建**: 环境变量使用 `VITE_` 前缀，构建模式 `test` / `production`；别名与 PostCSS（如 px-to-viewport，适配响应式布局）在 `vite.config.ts` 中配置。
+
+### 2. UI设计稿前置识别（新增核心要求）
+
+1. **识别时机**: 所有UI开发任务启动前，必须优先完成UI设计稿的全维度识别，禁止未识别直接开发。
+
+2. **识别输出物**: 输出结构化的UI设计稿概要JSON文件，存放至 `docs/ui-design/[模块名]-design-overview.json`，内容需覆盖：
+
+    - 模块基础信息：模块名称、所属业务域、适用端（PC/平板/移动端）
+
+    - 布局规则：整体布局结构（如栅格/弹性布局）、模块分区（头部/主体/侧边/底部）、各分区占比/尺寸
+
+    - 样式规则：字体（字号/字重/行高/字体家族）、间距（内边距/外边距/元素间距）、颜色（主色/辅助色/文本色/背景色）、圆角/阴影/边框样式
+
+    - 交互规则：动效时长/曲线、hover/active/disabled 状态样式、弹窗/抽屉的显隐逻辑、路由跳转方式
+
+    - 响应式规则：各断点（如1920px/1440px/768px）下的布局适配方式、元素尺寸/间距的缩放规则
+
+3. **开发依据**: 正式开发需同时参照「UI设计稿概要JSON」+「原始UI设计稿」，确保所有样式/交互规则与识别结果一致。
+
+### 3. UI开发核心约定
+
+#### （1）1:1 还原设计
+
+- **UI 样式:** 必须严格按照设计稿（包括但不限于布局、颜色、字体、间距、圆角、阴影等）进行 1:1 的像素级还原。
+
+- **交互效果:** 动效、过渡、路由跳转、用户操作反馈等交互行为需与原型设计保持完全一致。
+
+- **响应式布局:** 如设计稿包含多端（PC、平板、移动端）设计，需确保在不同分辨率下均能完美呈现对应布局；可借助 PostCSS（如 px-to-viewport）、自定义hooks实现响应式适配。
+
+#### （2）严格遵守设计规范
+
+- **不允许私自修改:** 严禁在未沟通的情况下，对设计稿的任何内容（包括文案、图标、颜色、布局等）进行任何形式的修改或“自我优化”。
+
+- **问题反馈机制:** 如果在开发过程中发现设计稿存在问题、逻辑不清晰或技术实现难度极高，请**立即停止开发**，并与产品经理和 UI 设计师进行沟通，待问题确认并解决后再继续进行。
+
+- **识别结果校验:** 若开发中发现设计稿与已输出的概要JSON信息不一致，需先同步设计师确认以哪个为准，更新概要JSON后再开发。
 
 ## 示例
 
-- 新增业务 API：在 `src/api/新模块/` 下新增 `index.ts`、`types.ts`，并统一使用 `request()`。
-- 新增页面：在 `src/views/新模块/index.vue` 写主页面，子组件放在同目录 `components/`；在 `router/index.ts` 的 layout.children 中增加对应路由。
-- 新增全局组件：放在 `src/components`，命名使用 com- 前缀，可由 unplugin-vue-components 自动按需引入。
+### 1. 新增业务API
+
+在 `src/api/新模块/` 下新增 `index.ts`、`types.ts`，并统一使用 `request()`。
+
+### 2. 新增页面（含UI开发全流程）
+
+1. **前置识别**: 识别新模块UI设计稿，输出 `docs/ui-design/新模块-design-overview.json`，明确模块布局（如左侧菜单+右侧主体，栅格24列）、字体（正文14px/字重400，标题18px/字重600）、间距（元素间距8px，内边距16px）等核心规则。
+
+2. **页面开发**: 在 `src/views/新模块/index.vue` 写主页面，子组件放在同目录 `components/`；编写样式时需同时参照设计稿和概要JSON，确保像素级还原，响应式部分匹配JSON中定义的断点规则。
+
+3. **路由配置**: 在 `router/index.ts` 的 layout.children 中增加对应路由，确保路由跳转交互与概要JSON中定义的交互规则一致。
+
+4. **问题处理**: 若开发中发现设计稿样式与概要JSON冲突，立即暂停开发，同步产品/设计师确认解决方案，更新概要JSON后再继续。
+
+### 3. 新增全局组件（含UI开发）
+
+1. **前置识别**: 识别组件设计稿，输出组件级别的UI概要JSON，明确组件各状态样式、交互规则。
+
+2. **组件开发**: 放在 `src/components`，命名使用 com- 前缀，可由 unplugin-vue-components 自动按需引入；组件的样式、交互需同时遵循设计稿和概要JSON，禁止私自调整。
+
+---
+
+## UI开发概要（JSON格式，含设计稿识别模块）
+
+```JSON
+
+{
+  "projectBasicInfo": {
+    "techStack": {
+      "framework": "Vue 3 + TypeScript + Vite",
+      "uiLibrary": "Element Plus（组件自动导入）",
+      "stateManagement": "Pinia",
+      "router": "Vue Router (createWebHistory)",
+      "request": "axios（@/utils/request 封装）"
+    },
+    "coreObjective": "先识别UI设计稿输出结构化概要信息，再基于概要信息+原始设计稿1:1还原UI样式与交互逻辑"
+  },
+  "uiDesignDraftRecognitionRule": {
+    "recognitionTiming": "所有UI开发任务启动前必须完成设计稿识别，禁止未识别直接开发",
+    "recognitionOutputPath": "docs/ui-design/[模块名]-design-overview.json",
+    "recognitionContent": [
+      "模块基础信息（名称、业务域、适用端）",
+      "布局规则（整体结构、分区、尺寸/占比）",
+      "样式规则（字体、间距、颜色、圆角/阴影/边框）",
+      "交互规则（动效、元素状态、显隐逻辑、路由跳转）",
+      "响应式规则（断点、布局/尺寸适配方式）"
+    ],
+    "developmentBasedOn": "正式开发需同时参照「UI设计稿概要JSON」+「原始UI设计稿」"
+  },
+  "uiDevelopmentRules": {
+    "designRestoration": {
+      "uiStyle": "严格按照设计稿完成布局、颜色、字体、间距、圆角、阴影等的1:1像素级还原",
+      "interactionEffect": "动效、过渡、路由跳转、用户操作反馈等交互行为与原型设计完全一致",
+      "responsiveLayout": "若设计稿包含多端（PC、平板、移动端）设计，需确保不同分辨率下完美呈现对应布局"
+    },
+    "designSpecificationCompliance": {
+      "modificationRule": "严禁未沟通时私自修改设计稿的文案、图标、颜色、布局等内容，禁止自我优化",
+      "feedbackMechanism": "开发中发现设计稿问题、逻辑不清晰或技术实现难度极高时，立即停止开发，与产品经理和UI设计师沟通，确认解决方案后再继续",
+      "recognitionResultCheck": "若设计稿与已输出的概要JSON信息不一致，需先同步设计师确认，更新概要JSON后再开发"
+    }
+  },
+  "directoryUiRequirement": {
+    "src/views": "页面视图按业务分目录，开发前需输出对应模块UI概要JSON，页面样式需1:1还原设计稿+概要JSON定义的规则",
+    "src/components": "全局可复用组件，开发前需输出组件级UI概要JSON，组件样式/交互严格遵循设计规范+概要JSON",
+    "src/assets": "静态资源，样式入口对齐设计稿基础样式规范+概要JSON，图标使用严格匹配设计稿",
+    "src/hooks": "可封装响应式布局、交互动效相关的复用逻辑，支撑多端适配需求",
+    "docs/ui-design（新增）": "存放各模块UI设计稿概要JSON文件，作为开发核心依据之一"
+  },
+  "designDraftOverviewExample": {
+    "moduleName": "用户管理模块",
+    "businessDomain": "系统管理",
+    "adaptedEnd": "PC端",
+    "layoutRule": {
+      "overallLayout": "栅格布局（24列）",
+      "partition": "头部（搜索栏，占24列）、主体（列表区，占24列）、操作区（底部，占24列）",
+      "size": "头部高度60px，主体高度自适应，操作区高度50px"
+    },
+    "styleRule": {
+      "font": {
+        "title": "字号16px，字重600，行高24px，字体家族PingFang SC",
+        "content": "字号14px，字重400，行高20px，字体家族PingFang SC",
+        "operationText": "字号12px，字重400，行高18px，字体家族PingFang SC"
+      },
+      "spacing": {
+        "padding": "头部内边距16px，主体内边距20px，操作区内边距12px",
+        "margin": "元素间距8px，模块间距20px"
+      },
+      "color": {
+        "primaryColor": "#1890ff",
+        "textColor": "#333333",
+        "backgroundColor": "#ffffff",
+        "borderColor": "#e8e8e8"
+      },
+      "borderRadius": "4px（通用），8px（卡片）",
+      "shadow": "卡片阴影：0 2px 8px rgba(0,0,0,0.08)"
+    },
+    "interactionRule": {
+      "buttonHover": "背景色加深10%，无动效时长",
+      "tableRowHover": "背景色#f5f5f5",
+      "dialogShow": "淡入动效，时长300ms，ease-in-out曲线",
+      "routerJump": "无跳转动画，直接渲染"
+    },
+    "responsiveRule": {
+      "breakpoints": ["1920px", "1440px", "1200px"],
+      "1920px": "栅格间距20px，字体大小不变",
+      "1440px": "栅格间距16px，字体缩小1px",
+      "1200px": "隐藏侧边筛选栏（折叠为按钮），列表列数减少"
+    }
+  }
+}
+```
+
