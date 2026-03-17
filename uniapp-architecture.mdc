@@ -9,6 +9,7 @@ alwaysApply: true
 ## 技术栈
 
 - **框架**: Vue 3 + Uniapp 3（Vite 5）
+- **构建项目方式**: npx degit dcloudio/uni-preset-vue#vite-ts 项目名称
 - **状态**: Pinia（单 store 同步到 uni.setStorageSync）
 - **样式**: Sass，入口 `@/common/com-list.scss`、`@/static/public.scss`
 - **请求**: 统一封装在 `@/common/http.ts`，API 层使用 `get/post/del` + 可选加密
